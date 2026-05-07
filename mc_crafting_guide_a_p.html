@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Recipe Database (A-P)</title>
+    <style>
+        :root { 
+            --bg: #0f172a; 
+            --card: rgba(30, 41, 59, 0.7); 
+            --accent: #10b981; 
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        body { 
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at top, #1e293b 0%, #0f172a 100%);
+            color: var(--text-main); 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            margin: 0; 
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .header { 
+            position: sticky; 
+            top: 0; 
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(12px);
+            padding: 25px 20px; 
+            z-index: 100; 
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        h1 { margin: 0 0 10px 0; font-size: 1.5rem; color: var(--accent); letter-spacing: 2px; }
+
+        .search-box { 
+            width: 90%; max-width: 500px; padding: 12px 25px; 
+            border-radius: 50px; border: 1px solid rgba(255,255,255,0.2); 
+            background: rgba(0,0,0,0.3); color: #fff; outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus { border-color: var(--accent); }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 30px 20px; }
+
+        .gallery { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 20px; 
+        }
+
+        .recipe-card { 
+            background: var(--card); 
+            border: 1px solid rgba(255,255,255,0.05); 
+            border-radius: 15px; 
+            padding: 25px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .recipe-card:hover { 
+            transform: translateY(-5px); 
+            border-color: var(--accent);
+            background: rgba(30, 41, 59, 0.9);
+        }
+
+        .recipe-img { 
+            width: 90px; 
+            height: 90px; 
+            object-fit: contain; 
+            margin-bottom: 15px;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+        }
+
+        .item-name { font-size: 1.2rem; margin: 10px 0; color: #fff; text-align: center; }
+        .description { color: var(--text-dim); font-size: 0.85rem; text-align: center; margin: 0; }
+        
+        #status { color: var(--accent); font-weight: bold; margin-top: 10px; font-size: 0.9rem; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>CRAFTING GUIDE</h1>
+        <input type="text" id="search" class="search-box" placeholder="Search items (A-P)..." autofocus>
+        <div id="status">Syncing database...</div>
+    </div>
+    
+    <div class="container">
+        <div id="gallery" class="gallery"></div>
+    </div>
+
+<script>
+    const RECIPES = [
+        { name: "Activator Rail", desc: "Used to 'activate' certain minecarts, such as TNT or Hoppers.", link: "https://minecraft-max.net/upload/webp/upload/iblock/311/3117d40f3d2dbebe881d1c1f4e521cc7.webp" },
+        { name: "Amethyst Block", desc: "A decorative shimmering block crafted from four amethyst shards.", link: "https://minecraft-max.net/upload/webp/upload/iblock/32e/32e649ba50a3c858670f5aafa5f1f0da.webp" },
+        { name: "Anvil", desc: "Used to repair items, rename equipment, and apply enchanted books.", link: "https://minecraft-max.net/upload/webp/upload/iblock/f54/f5443e27a870c81c1e5ea829f5916863.webp" },
+        { name: "Armor Stand", desc: "A decorative entity used to display and hold armor pieces.", link: "https://minecraft-max.net/upload/webp/upload/iblock/890/bqq6pwmyuejjwlhx8jcs67t5zjnw3pes.webp" },
+        { name: "Arrow", desc: "Standard ammunition for bows and dispensers.", link: "https://minecraft-max.net/upload/webp/upload/iblock/691/6919776c038cf3e253d4459160d8ff7c.webp" },
+        { name: "Banner", desc: "A customizable decorative block for marking bases or designs.", link: "https://minecraft-max.net/upload/webp/upload/iblock/831/831021c67ae567a96149ab45a3d33d05.webp" },
+        { name: "Barrel", desc: "A storage block that works even with a solid block above it.", link: "https://minecraft-max.net/upload/webp/upload/iblock/b3e/tafn4bkc8tqrwe3rgy0o9gpno8itikue.webp" },
+        { name: "Beacon", desc: "A powerful late-game block providing status effects to players.", link: "https://minecraft-max.net/upload/webp/upload/iblock/13f/qiznoklh5g168q7vehar7tbvy7zw8daw.webp" },
+        { name: "Bed", desc: "Used to sleep and set spawn points in the Overworld.", link: "https://minecraft-max.net/upload/webp/upload/iblock/214/r1qrl6jqj73ikbh89tl86o7p3p5fpd8h.webp" },
+        { name: "Beehive", desc: "A craftable home for bees to produce honey and honeycomb.", link: "https://minecraft-max.net/upload/webp/upload/iblock/d0f/d0faa0d2ed7865019cad8470cd685166.webp" },
+        { name: "Beetroot Soup", desc: "A liquid food source that restores 6 hunger points.", link: "https://minecraft-max.net/upload/webp/upload/iblock/1ad/tth5473dj5ck0o1ovwiash9dspsh108r.webp" },
+        { name: "Blast Furnace", desc: "Smelts metal ores and armor twice as fast as a furnace.", link: "https://minecraft-max.net/upload/webp/upload/iblock/caf/caf0ef15c50eb9ac910559dbd8ce6e77.webp" },
+        { name: "Boat", desc: "Essential for rapid water travel and transporting mobs.", link: "https://minecraft-max.net/upload/webp/upload/iblock/b89/b89b35aaf5c01985bf6e261d6ccb73c4.webp" },
+        { name: "Bone Block", desc: "Decorative and functional block crafted from nine bone meal.", link: "https://minecraft-max.net/upload/webp/upload/iblock/b1c/b1c9bbc2cbba7e8874fa1acb1dc0b258.webp" },
+        { name: "Bone Meal", desc: "Used to instantly grow crops, trees, and flowers.", link: "https://minecraft-max.net/upload/webp/upload/iblock/786/786e46ae5846f4bd3f2bbd8fbbd9451b.webp" },
+        { name: "Book", desc: "Ingredient for crafting bookshelves and enchanting tables.", link: "https://minecraft-max.net/upload/webp/upload/iblock/17a/17a045bcb542e985aacaf4b940cbca88.webp" },
+        { name: "Book and Quill", desc: "Allows players to write and sign custom books.", link: "https://minecraft-max.net/upload/webp/upload/iblock/9cf/9cf06bb08b5b595e982d236091f44521.webp" },
+        { name: "Bookshelf", desc: "Enhances the power of nearby enchanting tables.", link: "https://minecraft-max.net/upload/webp/upload/iblock/c82/c821c9508593acbb155e2c7b303d97c1.webp" },
+        { name: "Bread", desc: "A reliable early-game food item crafted from wheat.", link: "https://minecraft-max.net/upload/webp/upload/iblock/027/027a01dd6c949ba12cfd91d5b4b20cc2.webp" },
+        { name: "Brewing Stand", desc: "Essential workstation for creating magical potions.", link: "https://minecraft-max.net/upload/webp/upload/iblock/454/2e392q31grt3r04126rcwb9hvdjf13jq.webp" },
+        { name: "Bucket", desc: "Used to collect and carry water, lava, or milk.", link: "https://minecraft-max.net/upload/webp/upload/iblock/2c1/ktxsc9lsbf73p7nujhrna28bb35bed1z.webp" },
+        { name: "Bundle", desc: "A container used to group different item types together.", link: "https://imgs.search.brave.com/WM4RlRMVxlWJnVu1iAS3pUiJKLDLkhF8iObr234bHpU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/a2luZXRpY2hvc3Rp/bmcubmV0L25ld3Mv/bWluZWNyYWZ0LWJ1/bmRsZS1yZWNpcGUu/cG5n" },
+        { name: "Cake", desc: "A unique food block that can be eaten in seven slices.", link: "https://minecraft-max.net/upload/webp/upload/iblock/41b/mnk54d9473waiylrmtkzgvkcwtlumxms.webp" },
+        { name: "Campfire", desc: "Light source that cooks food without using additional fuel.", link: "https://minecraft-max.net/upload/webp/upload/iblock/dcf/kioisnfhwc2r3emm3p5iswwv0rllm5ls.webp" },
+        { name: "Candle", desc: "Dyable light source that can also be placed on cakes.", link: "https://minecraft-max.net/upload/webp/upload/iblock/8b5/8b5b2b263b953d8f61cff4500a795229.webp" },
+        { name: "Carpet", desc: "Thin decorative floor coverings available in all colors.", link: "https://minecraft-max.net/upload/webp/upload/iblock/e8c/e8c043f9b9dcc4920d113410d29edcde.webp" },
+        { name: "Cartography Table", desc: "Used for cloning, locking, and expanding maps.", link: "https://minecraft-max.net/upload/webp/upload/iblock/5cb/t1pet64he0zvs0u2q9t84hvsrnvktrsn.webp" },
+        { name: "Cauldron", desc: "Holds liquids or powder snow; used for dyeing leather.", link: "https://minecraft-max.net/upload/webp/upload/iblock/31e/w62nsiedon5fk6amn0kvxkntfkampygr.webp" },
+        { name: "Chest", desc: "Basic storage unit for 27 stacks of items.", link: "https://minecraft-max.net/upload/webp/upload/iblock/8d0/8d08af60f53c2c031a9f2d8784d30d9d.webp" },
+        { name: "Clock", desc: "Shows the current position of the sun and moon.", link: "https://minecraft-max.net/upload/webp/upload/iblock/390/390c4e1f4f62c7b3c2417e4e36aaf49b.webp" },
+        { name: "Compass", desc: "Points to the world spawn or a linked lodestone.", link: "https://minecraft-max.net/upload/webp/upload/iblock/346/346d49ba9c42e6c8dd06cca69010961e.webp" },
+        { name: "Composter", desc: "Converts organic food/plants into bone meal.", link: "https://minecraft-max.net/upload/webp/upload/iblock/f2a/8vgss2s21nnwymq30jrab0eci9pbzbyr.webp" },
+        { name: "Concrete Powder", desc: "Falls like sand and solidifies when touching water.", link: "https://minecraft-max.net/upload/webp/upload/iblock/46d/p5kv6wpkbq8n7uuc2nwx9fdr8g8l3y7p.webp" },
+        { name: "Conduit", desc: "Provides buffs and breathing when placed underwater.", link: "https://minecraft-max.net/upload/webp/upload/iblock/2d1/dtua9nlxk8cxbp9awitzlh7oqo95uavt.webp" },
+        { name: "Cookie", desc: "A snack food item crafted from cocoa beans and wheat.", link: "https://minecraft-max.net/upload/webp/upload/iblock/65a/65a99f911af522c36f1fcd8ca39b4a23.webp" },
+        { name: "Copper Block", desc: "Metallic building block that oxidizes to green over time.", link: "https://minecraft-max.net/upload/webp/upload/iblock/adc/adc397c5a67c12380e9f762512da1529.webp" },
+        { name: "Crafter", desc: "A redstone-powered block that automates crafting.", link: "https://imgs.search.brave.com/x_8740TDD3GyjVFktNBWdgMr5U7d3TX7M8dIA8KaBJ4/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/ZGV4ZXJ0by5jb20v/Y2RuLWltYWdlL3dw/LWNvbnRlbnQvdXBs/b2Fkcy8yMDI0LzAy/LzE1L0NyYWZ0ZXIt/TWluZWNyYWZ0LXJl/Y2lwZS0xMDI0eDU3/Ni5qcGc_d2lkdGg9/MTIwMCZxdWFsaXR5/PTc1JmZvcm1hdD1h/dXRv" },
+        { name: "Crafting Table", desc: "The essential 3x3 grid for complex crafting recipes.", link: "https://minecraft-max.net/upload/webp/upload/iblock/372/37292e6aa1df5aaec987d30b2b0437f2.webp" },
+        { name: "Crossbow", desc: "Powerful ranged weapon that can fire rockets.", link: "https://minecraft-max.net/upload/webp/upload/iblock/c0d/9q3r832zfpi4tf5v85dtb58cslhu8zke.webp" },
+        { name: "Daylight Detector", desc: "Outputs a redstone signal based on the intensity of sunlight.", link: "https://minecraft-max.net/upload/webp/upload/iblock/b90/qt9onk8hqyongx2w2idjip6oe2y90mgy.webp" },
+        { name: "Detector Rail", desc: "Triggers a redstone signal when a minecart passes over it.", link: "https://minecraft-max.net/upload/webp/upload/iblock/f53/f5342707e7523e5ef890eef452c8296c.webp" },
+        { name: "Diamond Block", desc: "A solid block of diamond, used for storage or beacons.", link: "https://minecraft-max.net/upload/webp/upload/iblock/203/203126350ed61c866bcd51b5f294cfee.webp" },
+        { name: "Diamond Pickaxe", desc: "Highest durability tool for mining Obsidian and Debris.", link: "https://imgs.search.brave.com/-OcO30S5LQTakaRlZ1gTeL6taWAxErInGo1JGGeiQFA/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWNnLnNwb3J0c2tl/ZWRhLmNvbS9lZGl0/b3IvMjAyMi8wNy9j/NmY0OS0xNjU3ODEx/MTEzMTE3My0xOTIw/LmpwZw" },
+        { name: "Dispenser", desc: "Fires or uses items automatically when powered by redstone.", link: "https://minecraft-max.net/upload/webp/upload/iblock/e2e/e2eef7c3c4734da84a44a32e8ff52974.webp" },
+        { name: "Dropper", desc: "Ejects items from its inventory into the world.", link: "https://minecraft-max.net/upload/webp/upload/iblock/805/805fc6a169cf9cc6659bfc7573851c73.webp" },
+        { name: "Emerald Block", desc: "Crafted from nine emeralds, often used for beacon bases.", link: "https://minecraft-max.net/upload/webp/upload/iblock/034/0343666b25d236743b594322f8bf1cb6.webp" },
+        { name: "Enchanting Table", desc: "Used to add magical abilities to armor, tools, and weapons.", link: "https://minecraft-max.net/upload/webp/upload/iblock/f1f/f1f5877b74b0efe4e9adc87b6d7866a1.webp" },
+        { name: "Fence", desc: "A protective barrier that mobs cannot jump over.", link: "https://minecraft-max.net/upload/webp/upload/iblock/474/4746c911fd36c6420e464a01ef3aad58.webp" },
+        { name: "Firework Rocket", desc: "Used for Elytra flight boosts and explosive displays.", link: "https://minecraft-max.net/upload/webp/upload/iblock/c1e/c1e1b6df70e9e20f85d65fd439811906.webp" },
+        { name: "Flint and Steel", desc: "Creates fire and activates Nether Portals.", link: "https://minecraft-max.net/upload/webp/upload/iblock/83e/83ecba80f714604c731a327893d339fd.webp" },
+        { name: "Furnace", desc: "Basic workstation for smelting materials and cooking food.", link: "https://minecraft-max.net/upload/webp/upload/iblock/0ee/0ee4f97f96f70a5ab3f6dc580330dc29.webp" },
+        { name: "Glass Bottle", desc: "Used to hold water for brewing or collecting honey.", link: "https://minecraft-max.net/upload/webp/upload/iblock/31f/d7nbyesfd1z16ac6im11527mu3dhmght.webp" },
+        { name: "Glowstone", desc: "A naturally occurring light block found in the Nether.", link: "https://minecraft-max.net/upload/webp/upload/iblock/3fa/3fa84843a2b704565c1a007445a98d61.webp" },
+        { name: "Golden Apple", desc: "Restores health and grants Absorption and Regeneration.", link: "https://minecraft-max.net/upload/webp/upload/iblock/1db/1db7c8bd8c072c2d27a52df3bd5b1919.webp" },
+        { name: "Grindstone", desc: "Used to repair equipment and remove non-curse enchantments.", link: "https://minecraft-max.net/upload/webp/upload/iblock/0a3/xz5dqd70h2lguqlft3indl1th247pv7a.webp" },
+        { name: "Hanging Signs", desc: "Decorative signs that hang from the side or bottom of blocks.", link: "https://imgs.search.brave.com/cVVHYoNp8SqICv9iVBnHANFo_EL89YOXr1zmZU4njLk/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWNuLmJlZWJ9bS5j/b20vd3AtY29udGVu/dC91cGxvYWRzLzIw/MjIvMTAvQ3JhZnRp/bmctUmVjaXBlLW9m/LUhhbmdpbmctU2ln/bi1pbi1NaW5l/Y3Jh/ZnQuanBnP3c9Njkw" },
+        { name: "Hay Bale", desc: "Reduces fall damage by 80% when landed upon.", link: "https://minecraft-max.net/upload/webp/upload/iblock/5ab/5ab61207d1016c433bb2702b72b17986.webp" },
+        { name: "Honey Block", desc: "A sticky block that slows movement and prevents jumping.", link: "https://minecraft-max.net/upload/webp/upload/iblock/4bd/4bd0710ad73ff378fe42be129fcdc13e.webp" },
+        { name: "Hopper", desc: "Crucial for automation; moves items into containers.", link: "https://minecraft-max.net/upload/webp/upload/iblock/266/26635474797facd142a3161812fa2e7a.webp" },
+        { name: "Iron Block", desc: "Storage for iron or used for building Iron Golems.", link: "https://minecraft-max.net/upload/webp/upload/iblock/05b/05b2406a815679c02f50cc979cc873a3.webp" },
+        { name: "Iron Sword", desc: "A reliable weapon with 250 durability and moderate damage.", link: "https://minecraft-max.net/upload/webp/upload/iblock/8df/8dfabb3ddc25bf90b0a473a7f6a86987.webp" },
+        { name: "Item Frame", desc: "Displays items or maps on the surfaces of blocks.", link: "https://minecraft-max.net/upload/webp/upload/iblock/1b7/1b738540f58ce28d61fe20ca23928b29.webp" },
+        { name: "Jukebox", desc: "Plays music discs found in dungeon loot chests.", link: "https://minecraft-max.net/upload/webp/upload/iblock/d77/d77dc2c27451a17beb018670b4e75297.webp" },
+        { name: "Ladder", desc: "Cheap vertical transport for climbing walls.", link: "https://minecraft-max.net/upload/webp/upload/iblock/6d1/6d1851fa9d39963e44f68be38975d4da.webp" },
+        { name: "Lantern", desc: "A permanent light source that can be placed or hung.", link: "https://minecraft-max.net/upload/webp/upload/iblock/9bf/jyqmvv4sb5o0i04djrbstuy0d54osr0h.webp" },
+        { name: "Lead", desc: "Used to lead animals or tie them to a fence post.", link: "https://minecraft-max.net/upload/webp/upload/iblock/cf9/lpv63eedwac08mfy1u284irqzxt8u16a.webp" },
+        { name: "Lectern", desc: "A podium that holds books; the job site for Librarians.", link: "https://minecraft-max.net/upload/webp/upload/iblock/d1a/hn78srn5j6d6fqpoy9bxggxpet5537c4.webp" },
+        { name: "Lightning Rod", desc: "Protects nearby flammable blocks from lightning strikes.", link: "https://minecraft-max.net/upload/webp/upload/iblock/c07/ysxzz8b6iq1xyrrang1q3xfoa53x203e.webp" },
+        { name: "Loom", desc: "Used to apply patterns to banners using dye and templates.", link: "https://minecraft-max.net/upload/webp/upload/iblock/0c1/yvfwp62q3thkpl7k60kvvhb3zmt1koqs.webp" },
+        { name: "Map", desc: "Essential for navigating and charting explored chunks.", link: "https://minecraft-max.net/upload/webp/upload/iblock/882/882a4d3393b482703b41d063717208d1.webp" },
+        { name: "Mace", desc: "The new 1.21 Heavy melee weapon. Deals smash damage from height.", link: "https://imgs.search.brave.com/r7rhyDxxUZzBG8b3eleS5V3DHa1cjjJnw7ccubXdPwg/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9jZG4u/YXBleG1pbmVjcmFm/dGhvc3Rpbmcu/Y29t/L2ltZy91cGxvYWRz/LzIwMjQvMDMvMjgx/OTUzMTMvTWluZWNy/YWZ0LU1hY2UtMS5w/bmc" },
+        { name: "Magma Block", desc: "Heat-emitting block from the nether; causes damage to those on it.", link: "https://minecraft-max.net/upload/webp/upload/iblock/022/0224424162e8047a70b234c5fc72ca9e.webp" },
+        { name: "Melon Slice", desc: "Basic food item obtained by breaking melon blocks.", link: "https://minecraft-max.net/upload/webp/upload/iblock/58c/58c42bb797c2111162464731a5472877.webp" },
+        { name: "Minecart", desc: "Basic transport vehicle for movement along rail lines.", link: "https://minecraft-max.net/upload/webp/upload/iblock/f6a/f6a44547496ef9c2f6057a7cc21021bc.webp" },
+        { name: "Mossy Cobblestone", desc: "Decorative cobble variant used for ruined or overgrown builds.", link: "https://minecraft-max.net/upload/webp/upload/iblock/76d/76d33ba22e45d66dc3fa687738ebc80a.webp" },
+        { name: "Nether Brick", desc: "Durable building material obtained by smelting netherrack.", link: "https://minecraft-max.net/upload/webp/upload/iblock/23b/23b3842c1628d08560f23554625b16e8.webp" },
+        { name: "Netherite Ingot", desc: "Strongest crafting metal, forged from scraps and gold.", link: "https://minecraft-max.net/upload/webp/upload/iblock/e4c/aovgcda3v5vyep6vygxx4cb9mojqvoht.webp" },
+        { name: "Note Block", desc: "Produces musical notes when hit or powered by redstone.", link: "https://minecraft-max.net/upload/webp/upload/iblock/8d7/8d74c02ecb0af543daad83d09861e58b.webp" },
+        { name: "Observer", desc: "Redstone block that detects changes in the block facing it.", link: "https://minecraft-max.net/upload/webp/upload/iblock/5c8/5c807484f61450152920ddbd6909f126.webp" },
+        { name: "Painting", desc: "A decorative wall canvas used to display art.", link: "https://minecraft-max.net/upload/webp/upload/iblock/32f/32fca8d0a5c4ba7747d30ce48d3d94eb.webp" },
+        { name: "Paper", desc: "Crafted from sugar cane; used for books and maps.", link: "https://minecraft-max.net/upload/webp/upload/iblock/2a0/2a0b6d9f2e53ba06ef91680c5c669379.webp" },
+        { name: "Golden Pickaxe", desc: "Mines extremely fast but has very low durability.", link: "https://minecraft-max.net/upload/webp/upload/iblock/989/98921b2e0c39166a5e2bce596f46a845.webp" },
+        { name: "Iron Pickaxe", desc: "Reliable mid-tier tool capable of mining diamonds.", link: "https://minecraft-max.net/upload/webp/upload/iblock/5fa/5fad008a1940ea93b3723e1ba6404f02.webp" },
+        { name: "Stone Pickaxe", desc: "Early-game mining tool crafted from cobblestone.", link: "https://minecraft-max.net/upload/webp/upload/iblock/883/883467e75311586200d11c10f8c17006.webp" },
+        { name: "Wooden Pickaxe", desc: "The very first pickaxe a player crafts to get started.", link: "https://minecraft-max.net/upload/webp/upload/iblock/9e5/9e5d472cffa1bcebde246ed4f27ac1ce.webp" },
+        { name: "Piston", desc: "A mechanical redstone device that pushes blocks.", link: "https://minecraft-max.net/upload/webp/upload/iblock/ce5/ce57997891b193fd28b2fa3f862bc92b.webp" },
+        { name: "Polished Andesite", desc: "A smooth grey stone block used for clean aesthetics.", link: "https://minecraft-max.net/upload/webp/upload/iblock/abc/abc269ac65b4423fe053f2e0c490f9b2.webp" },
+        { name: "Polished Deepslate", desc: "A dark, durable stone from the deepest underground layers.", link: "https://minecraft-max.net/upload/webp/upload/iblock/821/82138eeb24d1ee574bfdf63df4a04788.webp" }
+    ];
+
+    const gallery = document.getElementById('gallery');
+    const status = document.getElementById('status');
+    const search = document.getElementById('search');
+
+    function render(filterTerm = "") {
+        const filtered = RECIPES.filter(item => 
+            item.name.toLowerCase().includes(filterTerm.toLowerCase())
+        );
+
+        gallery.innerHTML = filtered.map(item => `
+            <div class="recipe-card">
+                <img class="recipe-img" 
+                     src="${item.link}" 
+                     loading="lazy" 
+                     alt="${item.name}"
+                     onerror="this.src='https://via.placeholder.com/90?text=Item'">
+                <div class="item-name">${item.name}</div>
+                <p class="description">${item.desc}</p>
+            </div>
+        `).join('');
+
+        status.textContent = filterTerm 
+            ? `Found ${filtered.length} matching items` 
+            : `Total Items: ${RECIPES.length}`;
+    }
+
+    search.addEventListener('input', (e) => render(e.target.value));
+    render();
+</script>
+</body>
+</html>
