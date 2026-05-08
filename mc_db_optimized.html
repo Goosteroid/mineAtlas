@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MC Database Optimized</title>
+    <style>
+        body { background: #0f172a; color: white; font-family: sans-serif; padding: 20px; }
+        input { width: 100%; max-width: 400px; padding: 10px; border-radius: 20px; border: 1px solid #475569; background: #1e293b; color: white; margin-bottom: 20px; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
+        img { width: 100px; height: 100px; object-fit: contain; margin-bottom: 10px; }
+        h3 { color: #10b981; margin: 5px 0; }
+        p { color: #94a3b8; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <input type="text" id="s" placeholder="Search items...">
+    <div id="g" class="gallery"></div>
+    <script>
+        const raw = "Activator Rail|Activates TNT or ejects mobs.|https://minecraft-max.net/upload/webp/upload/iblock/311/3117d40f3d2dbebe881d1c1f4e521cc7.webp||Amethyst Block|Shimmering decorative block.|https://minecraft-max.net/upload/webp/upload/iblock/32e/32e649ba50a3c858670f5aafa5f1f0da.webp||Anvil|Repairs and renames gear.|https://minecraft-max.net/upload/webp/upload/iblock/f54/f5443e27a870c81c1e5ea829f5916863.webp||Armor Stand|Displays armor sets.|https://minecraft-max.net/upload/webp/upload/iblock/890/bqq6pwmyuejjwlhx8jcs67t5zjnw3pes.webp||Beacon|Provides powerful buffs.|https://minecraft-max.net/upload/webp/upload/iblock/13f/qiznoklh5g168q7vehar7tbvy7zw8daw.webp||Bed|Resets spawn point.|https://minecraft-max.net/upload/webp/upload/iblock/214/r1qrl6jqj73ikbh89tl86o7p3p5fpd8h.webp||Blast Furnace|Smelts metal twice as fast.|https://minecraft-max.net/upload/webp/upload/iblock/caf/caf0ef15c50eb9ac910559dbd8ce6e77.webp||Bookshelf|Enhances enchantment table.|https://minecraft-max.net/upload/webp/upload/iblock/c82/c821c9508593acbb155e2c7b303d97c1.webp||Chest|Basic storage block.|https://minecraft-max.net/upload/webp/upload/iblock/8d0/8d08af60f53c2c031a9f2d8784d30d9d.webp||Crafting Table|Basic 3x3 crafting grid.|https://minecraft-max.net/upload/webp/upload/iblock/372/37292e6aa1df5aaec987d30b2b0437f2.webp||Diamond Pickaxe|Highest tier mining tool.|https://imgs.search.brave.com/-OcO30S5LQTakaRlZ1gTeL6taWAxErInGo1JGGeiQFA/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWNnLnNwb3J0c2tl/ZWRhLmNvbS9lZGl0/b3IvMjAyMi8wNy9j/NmY0OS0xNjU3ODEx/MTEzMTE3My0xOTIw/LmpwZw||Enchanting Table|Add magic to tools.|https://minecraft-max.net/upload/webp/upload/iblock/f1f/f1f5877b74b0efe4e9adc87b6d7866a1.webp||Furnace|Standard smelting block.|https://minecraft-max.net/upload/webp/upload/iblock/0ee/0ee4f97f96f70a5ab3f6dc580330dc29.webp||Hopper|Moves items automatically.|https://minecraft-max.net/upload/webp/upload/iblock/266/26635474797facd142a3161812fa2e7a.webp||Lantern|Stylish light source.|https://minecraft-max.net/upload/webp/upload/iblock/9bf/jyqmvv4sb5o0i04djrbstuy0d54osr0h.webp||Lectern|Holds books for librarians.|https://minecraft-max.net/upload/webp/upload/iblock/d1a/hn78srn5j6d6fqpoy9bxggxpet5537c4.webp||Mace|Heavy 1.21 weapon.|https://imgs.search.brave.com/r7rhyDxxUZzBG8b3eleS5V3DHa1cjjJnw7ccubXdPwg/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9jZG4u/YXBleG1pbmVjcmFm/dGhvc3Rpbmcu/Y29t/L2ltZy91cGxvYWRz/LzIwMjQvMDMvMjgx/OTUzMTMvTWluZWNy/YWZ0LU1hY2UtMS5w/bmc||Magma Block|Damaging nether block.|https://minecraft-max.net/upload/webp/upload/iblock/022/0224424162e8047a70b234c5fc72ca9e.webp||Melon|Full melon block.|https://minecraft-max.net/upload/webp/upload/iblock/47a/47ad478593b004fe753a4cd44bcec6b9.webp||Minecart|Basic rail vehicle.|https://minecraft-max.net/upload/webp/upload/iblock/5e5/5e568e5fff362fb30129f2cdb0f1fb70.webp||Netherite Ingot|Strongest metal.|https://minecraft-max.net/upload/webp/upload/iblock/e4c/aovgcda3v5vyep6vygxx4cb9mojqvoht.webp||Observer|Detects block updates.|https://minecraft-max.net/upload/webp/upload/iblock/5c8/5c807484f61450152920ddbd6909f126.webp||Painting|Decorative art.|https://minecraft-max.net/upload/webp/upload/iblock/32f/32fca8d0a5c4ba7747d30ce48d3d94eb.webp||Paper|Sugar cane product.|https://minecraft-max.net/upload/webp/upload/iblock/2a0/2a0b6d9f2e53ba06ef91680c5c669379.webp||Piston|Pushes blocks.|https://minecraft-max.net/upload/webp/upload/iblock/ce5/ce57997891b193fd28b2fa3f862bc92b.webp||Polished Andesite|Smooth stone block.|https://minecraft-max.net/upload/webp/upload/iblock/abc/abc269ac65b4423fe053f2e0c490f9b2.webp||Polished Blackstone|Dark nether stone.|https://minecraft-max.net/upload/webp/upload/iblock/717/71735bcc702393cd9915171ded855a28.webp||Polished Deepslate|Dark deep stone.|https://minecraft-max.net/upload/webp/upload/iblock/821/82138eeb24d1ee574bfdf63df4a04788.webp||Polished Diorite|White speckled stone.|https://minecraft-max.net/upload/webp/upload/iblock/2c3/2c3b754bdb2763c9f7b9aa91002cc16f.webp||Polished Granite|Smooth red stone.|https://minecraft-max.net/upload/webp/upload/iblock/903/9039c292972399750188cc379e8efd80.webp";
+        const DATA = raw.split("||").map(i => {
+            const [n, d, l] = i.split("|");
+            return { n, d, l };
+        });
+        const g = document.getElementById("g");
+        const s = document.getElementById("s");
+        const r = (q = "") => {
+            g.innerHTML = DATA.filter(i => i.n.toLowerCase().includes(q.toLowerCase()))
+                .map(i => `<div class="card"><img src="${i.l}" loading="lazy"><h3>${i.n}</h3><p>${i.d}</p></div>`).join("");
+        };
+        s.oninput = (e) => r(e.target.value);
+        r();
+    </script>
+</body>
+</html>
